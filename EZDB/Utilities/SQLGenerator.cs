@@ -28,7 +28,7 @@ namespace EZDB.Utilities
 
         internal string CreateSqlSelectByWOB(string sWhere = "", string sOrderBy = "")
         {
-            string sSelectPhrase = $"Select {GetSqlSelectPhrase()} "; 
+            string sSelectPhrase = $"Select {CreateSqlSelectPhrase()} "; 
             //TODO: string sJoinPhrase = $"{GetRelatedJoinClauses(sSelectPhrase)} " ;
             string sFromPhrase = $"From {_mdl.Model_EntityName} ";
 
@@ -68,7 +68,18 @@ namespace EZDB.Utilities
             return $"Insert into {_mdl.Model_EntityName} ({sColumns}) Values ({sValues}) ; SELECT SCOPE_IDENTITY();";
         }
 
-        internal string GetSqlSelectPhrase()
+        internal string CreateSqlSelectByPrimaryKey(long pkId)
+        {
+            var sSelectPhrase = $"Select {CreateSqlSelectPhrase()} ";
+            //TODO: string sJoinPhrase = $"{GetRelatedJoinClauses(sSelectPhrase)} " ;
+            var sFromPhrase = $"From {_mdl.Model_EntityName} ";
+
+            var sWhere = $"Where {FullyQualifiedSqlPkName()} = {pkId}";
+
+            return sSelectPhrase + sFromPhrase + sWhere;
+        }
+
+        internal string CreateSqlSelectPhrase()
         {
             string sReturn = string.Empty;
 
@@ -124,7 +135,20 @@ namespace EZDB.Utilities
             return sValue.Length == 0
                 ? sAppend
                 : $"{sValue}, {sAppend}";
+        }
 
+        private string FullyQualifiedSqlPkName()
+        {
+            var p = _mdl.PrimaryKeyProperty();
+
+            return p == null
+                ? ""
+                : FullyQualifiedSqlName(p);
+        }
+
+        private string FullyQulifiedSqlName(PropertyInfo p)
+        {
+            return $"{_mdl.Model_EntityName}.{p.Name}";
         }
 
         private string PropertyToValidValue(dynamic model,PropertyInfo p)

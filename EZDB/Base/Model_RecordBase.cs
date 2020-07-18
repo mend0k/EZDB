@@ -19,6 +19,78 @@ namespace EZDB.Base
         public Model_RecordOverrides Model_Overrides = new Model_RecordOverrides();
         public Model_RecordBase() : base() { }
 
+
+        /// <summary>
+        /// Loads and populates the current model based on the given primary key id.
+        /// </summary>
+        /// <param name="primaryKeyId">The primary key of the record to load.</param>
+        /// <returns>Bool indicicating succcess.</returns>
+        public bool LoadRecord(int primaryKeyId)
+        {
+            var bResult = false;
+
+            var sql = new SQLGenerator(this).CreateSqlSelectByPrimaryKey(primaryKeyId);
+
+            try
+            {
+                DBAccess.DBAccess db = GetDB();
+                var dataTable = db.ExecuteSql(sql);
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    ModelPopulate(dataTable);
+                }
+
+                bResult = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.Data.Contains("Function"))
+                    ex.Data.Add("Function", "Model_RecordBase.LoadPrimary");
+                if (ex.Data.Contains("PrimaryKeyID"))
+                    ex.Data.Add("PrimaryKeyID", primaryKeyId);
+
+                OnExceptionEvent(ex, sql);
+            }
+            return bResult;
+        }
+
+
+        /// <summary>
+        /// Loads and populates the current model based on the given where clause.
+        /// </summary>
+        /// <param name="sWhere">Sql where statement. Do not include the "WHERE =" keyword and operator.</param>
+        /// <returns>Bool indicicating succcess.</returns>
+        public bool LoadRecordWhere(string sWhere)
+        {
+            var bResult = false;
+
+            var sql = new SQLGenerator(this).CreateSqlSelectByWOB(sWhere);
+
+            try
+            {
+                DBAccess.DBAccess db = GetDB();
+                var dataTable = db.ExecuteSql(sql);
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    ModelPopulate(dataTable);
+                }
+
+                bResult = true;
+            }
+            catch (Exception ex)
+            {
+                if (ex.Data.Contains("Function"))
+                    ex.Data.Add("Function", "Model_RecordBase.LoadPrimary");
+                if (ex.Data.Contains("sWhere"))
+                    ex.Data.Add("sWhere", sWhere);
+
+                OnExceptionEvent(ex, sql);
+            }
+            return bResult;
+        }
+
         #region Basic CRUD Methods
         /// <summary>
         /// Inserts the current model instance as a record into the database.
@@ -206,6 +278,17 @@ namespace EZDB.Base
                 }
 
             return colReturn;
+        }
+
+        /// <summary>
+        /// Populates the current model or passed model from a selected row from the datatable
+        /// </summary>
+        /// <param name="dt">Datatable containing the data row</param>
+        /// <param name="rowIndex">Index of the data row used to populate the model</param>
+        /// <param name="mdl">The model to populate, it will use the current model instance by default.</param>
+        public void ModelPopulate(DataTable dt, int rowIndex = 0, Model_RecordBase mdl = null)
+        {
+            ModelPopulate(dt.Rows[rowIndex], mdl);
         }
 
         /// <summary>

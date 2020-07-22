@@ -1,5 +1,8 @@
 # EZDB/EZCRUD
 
+## Upcoming Changes
+- Properties for base models (Model_Base and Model_RecordBase) will be decorated with the "JsonIgnoreAttribute", this will prevent the base model properties being included when the derived model is requested and serialized via JSON. In the meantime, decorate your derived class models with the "JsonObject(MemberSerialization.OptIn)" attribute and all the properties with the "JsonProperty" attribute.
+
 EZCRUD provides a simple means to interact with a SQL Server database. 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ## How to implement:
